@@ -1,0 +1,110 @@
+name: Publish Release
+
+on:
+  workflow_call:
+    inputs:
+
+      go-version:
+        type: string
+        default: "1.25.5"
+
+      artifact-name:
+        type: string
+        default: "release"
+
+permissions:
+  contents: write
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Validate version
+        id: version
+        run: |
+          VERSION=$(yq '.project.version' go.package.yml)
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9\.-]+)?$ ]]; then
+            echo "❌ Invalid version: $VERSION"
+            echo "✅ Expected format: v1.2.3 or v1.2.3-beta.1"
+            exit 1
+          fi
+
+          IS_DEV=false
+          if [[ "$VERSION" =~ -dev.0$ ]]; then
+            IS_DEV=true
+            VERSION="${VERSION%-dev.0}-dev.$(date +%Y%m%d%H%M%S)"
+            echo "⚠️ Unstamped development version detected. Updated version to: $VERSION"
+          fi
+
+          if [[ "$IS_DEV" == "true" && "${GITHUB_REF_NAME}" != "dev" ]]; then
+            echo "🚫 Development versions can only be released from the 'dev' branch."
+            exit 1
+          fi
+
+          if [[ "$IS_DEV" == "false" && "${GITHUB_REF_NAME}" != "main" ]]; then
+            echo "🚫 Manual dispatch is only allowed from the 'main' branch."
+            exit 1
+          fi
+
+          echo "✅ Branch '${GITHUB_REF_NAME}' allowed. Continuing..."
+
+          echo "✅ Valid version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check tag exists
+        run: |
+          git fetch --tags
+          
+          VERSION="${{ steps.version.outputs.version }}"
+          if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "🚫 Tag already exists → stopping"
+            exit 1
+          fi
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Build & test
+        run: |
+          go mod tidy
+          go test ./...
+
+      - name: Create artifact
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARTIFACT="${{ inputs.artifact-name }}"
+          
+          git archive --format=tar.gz \
+            --output=${ARTIFACT}-${VERSION}.tar.gz \
+            $VERSION
+
+      - name: Push tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git tag $VERSION
+          git push origin $VERSION
+
+      - name: Create release
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          gh release create $VERSION \
+            ${{ inputs.artifact-name }}-${VERSION}.tar.gz \
+            --title "Release $VERSION" \
+            --notes "Automated release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
