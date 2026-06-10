@@ -18,6 +18,8 @@ Usage:
 jobs:
   ci:
     uses: Rafael24595/github-workflows/.github/workflows/go-ci.yml@main
+    with:
+      test-tags: integration
 ```
 
 #### Inputs
@@ -25,6 +27,7 @@ jobs:
 | Name | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
 | go-version | string | 1.25.5  | Go version used by the workflow |
+| test-tags | string | "" | Optional Go build tags passed to `go test` |
 
 #### Jobs Included
 

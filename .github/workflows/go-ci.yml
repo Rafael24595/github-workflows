@@ -12,6 +12,11 @@ on:
         type: string
         default: '1.25.5'
 
+      test-tags:
+        required: false
+        type: string
+        default: ''
+
 jobs:
 
   build:
@@ -45,7 +50,12 @@ jobs:
         run: go mod download
 
       - name: Run tests
-        run: go test -v ./...
+        run: |
+          if [ -n "${{ inputs.test-tags }}" ]; then
+            go test -v -tags="${{ inputs.test-tags }}" ./...
+          else
+            go test -v ./...
+          fi
 
   lint:
     name: Lint (golangci-lint)
