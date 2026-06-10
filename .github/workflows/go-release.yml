@@ -78,16 +78,7 @@ jobs:
         run: |
           go mod tidy
           go test ./...
-
-      - name: Create artifact
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          ARTIFACT="${{ inputs.artifact-name }}"
-          
-          git archive --format=tar.gz \
-            --output=${ARTIFACT}-${VERSION}.tar.gz \
-            $VERSION
-
+        
       - name: Push tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
@@ -97,6 +88,15 @@ jobs:
 
           git tag $VERSION
           git push origin $VERSION
+
+      - name: Create artifact
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARTIFACT="${{ inputs.artifact-name }}"
+          
+          git archive --format=tar.gz \
+            --output=${ARTIFACT}-${VERSION}.tar.gz \
+            $VERSION
 
       - name: Create release
         run: |
