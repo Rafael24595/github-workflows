@@ -1,0 +1,36 @@
+# This workflow checks Bash scripts for syntax errors and common code smells
+# using pre-installed system tools (bash -n and ShellCheck) without third-party dependencies.
+
+name: CI
+
+on:
+  workflow_call:
+
+jobs:
+
+  lint:
+    name: Lint (ShellCheck)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate syntax
+        run: |
+          echo "🔍 Checking Bash syntax..."
+
+          find . -type f \( -name "*.sh" -o -exec sh -c 'file "$1" | grep -q "shell script"' _ {} \; \) \
+            -not -path '*/.*' \
+            -exec bash -n {} +
+
+          echo "✅ Syntax valid."
+
+      - name: Run ShellCheck
+        run: |
+          echo "🔍 Running ShellCheck..."
+          
+          find . -type f \( -name "*.sh" -o -exec sh -c 'file "$1" | grep -q "shell script"' _ {} \; \) \
+            -not -path '*/.*' \
+            -exec shellcheck -x {} +
+
+          echo "✅ ShellCheck completed successfully."

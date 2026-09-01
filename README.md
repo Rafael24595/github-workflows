@@ -118,6 +118,39 @@ Example:
 my-library-v1.2.3.tar.gz
 ```
 
+---
+
+### Shell CI
+
+Path:
+
+```text
+.github/workflows/sh-ci.yml
+```
+
+Usage:
+
+```yaml
+jobs:
+  ci:
+    uses: Rafael24595/github-workflows/.github/workflows/sh-ci.yml@main
+```
+
+#### Inputs
+
+This workflow does not take any input parameters.
+
+#### Features
+
+* Zero third-party dependencies (uses tools pre-installed on the runner)
+* Automatic discovery of `.sh` scripts and executable shell files without extensions
+* Syntax validation using `bash -n`
+* Static code analysis using `shellcheck` with sourced file tracking (`-x`)
+
+#### Jobs Included
+
+* Lint (ShellCheck & Syntax)
+
 ## Versioning
 
 Workflows can be referenced directly from the `main` branch:
