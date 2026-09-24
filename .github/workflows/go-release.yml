@@ -3,7 +3,6 @@ name: Release
 on:
   workflow_call:
     inputs:
-
       go-version:
         type: string
         default: "1.25.5"
@@ -16,7 +15,6 @@ permissions:
   contents: write
 
 jobs:
-
   release:
     runs-on: ubuntu-latest
 
@@ -78,7 +76,7 @@ jobs:
         run: |
           go mod tidy
           go test ./...
-        
+
       - name: Push tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
