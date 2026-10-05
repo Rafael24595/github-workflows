@@ -11,6 +11,10 @@ on:
         type: string
         default: "app"
 
+      build-paths:
+        type: string
+        default: "."
+
 permissions:
   contents: write
 
@@ -88,20 +92,56 @@ jobs:
           git push origin $VERSION
 
       - name: Compile multi-platform binaries
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          NAME: ${{ inputs.artifact-name }}
+          BUILD_PATHS: ${{ inputs.build-paths }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          NAME="${{ inputs.artifact-name }}"
-          
           mkdir -p dist
 
           LDFLAGS="-s -w -X main.version=${VERSION}"
 
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$LDFLAGS" -o "dist/${NAME}-${VERSION}-linux-amd64" .
-          
-          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$LDFLAGS" -o "dist/${NAME}-${VERSION}-windows-amd64.exe" .
-          
-          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "$LDFLAGS" -o "dist/${NAME}-${VERSION}-darwin-arm64" .
-          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$LDFLAGS" -o "dist/${NAME}-${VERSION}-darwin-amd64" .
+          IFS=',' read -ra PATHS <<< "$BUILD_PATHS"
+
+          for BUILD_PATH in "${PATHS[@]}"; do
+            BUILD_PATH="$(echo "$BUILD_PATH" | xargs)"
+
+            # ./cmd/api -> api
+            BINARY_NAME="$(basename "$BUILD_PATH")"
+
+            echo "========================================"
+            echo "Building: ${BINARY_NAME}"
+            echo "Path:    ${BUILD_PATH}"
+            echo "========================================"
+
+            # Linux
+            GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+              go build \
+              -ldflags "$LDFLAGS" \
+              -o "dist/${NAME}-${BINARY_NAME}-${VERSION}-linux-amd64" \
+              "$BUILD_PATH"
+
+            # Windows
+            GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+              go build \
+              -ldflags "$LDFLAGS" \
+              -o "dist/${NAME}-${BINARY_NAME}-${VERSION}-windows-amd64.exe" \
+              "$BUILD_PATH"
+
+            # macOS ARM
+            GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+              go build \
+              -ldflags "$LDFLAGS" \
+              -o "dist/${NAME}-${BINARY_NAME}-${VERSION}-darwin-arm64" \
+              "$BUILD_PATH"
+
+            # macOS Intel
+            GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
+              go build \
+              -ldflags "$LDFLAGS" \
+              -o "dist/${NAME}-${BINARY_NAME}-${VERSION}-darwin-amd64" \
+              "$BUILD_PATH"
+          done
 
           cd dist
           sha256sum * > checksums.txt
