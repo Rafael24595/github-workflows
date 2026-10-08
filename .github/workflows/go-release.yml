@@ -1,8 +1,11 @@
+# This workflow will build and create a release for a Go project.
+
 name: Release
 
 on:
   workflow_call:
     inputs:
+
       go-version:
         type: string
         default: "1.25.5"
