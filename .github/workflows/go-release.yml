@@ -68,9 +68,7 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Build & test
-        run: |
-          go mod tidy
-          go test ./...
+        run: go test ./...
 
       - name: Push tag
         run: |
