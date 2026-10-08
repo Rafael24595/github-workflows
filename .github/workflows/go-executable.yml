@@ -76,16 +76,6 @@ jobs:
       - name: Build & test
         run: go test ./...
 
-      - name: Push tag
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
-          git tag $VERSION
-          git push origin $VERSION
-
       - name: Compile multi-platform binaries
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -140,6 +130,16 @@ jobs:
 
           cd dist
           sha256sum * > checksums.txt
+
+      - name: Push tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git tag $VERSION
+          git push origin $VERSION
 
       - name: Create release with executables
         run: |
