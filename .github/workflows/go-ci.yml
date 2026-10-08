@@ -46,9 +46,6 @@ jobs:
           go-version: ${{ inputs.go-version }}
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
-
       - name: Run tests
         run: |
           if [ -n "${{ inputs.test-tags }}" ]; then
