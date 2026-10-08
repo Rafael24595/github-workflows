@@ -47,9 +47,11 @@ jobs:
           cache: true
 
       - name: Run tests
+        env:
+          TAGS: ${{ inputs.test-tags}}
         run: |
-          if [ -n "${{ inputs.test-tags }}" ]; then
-            go test -v -tags="${{ inputs.test-tags }}" ./...
+          if [ -n "${TAGS}" ]; then
+            go test -v -tags="${TAGS}" ./...
           else
             go test -v ./...
           fi

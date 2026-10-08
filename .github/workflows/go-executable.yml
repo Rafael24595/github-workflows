@@ -58,10 +58,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Check tag exists
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           git fetch --tags
 
-          VERSION="${{ steps.version.outputs.version }}"
           if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
             echo "🚫 Tag already exists → stopping"
             exit 1
@@ -132,21 +133,21 @@ jobs:
           sha256sum * > checksums.txt
 
       - name: Push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git tag $VERSION
-          git push origin $VERSION
+          git tag "$VERSION"
+          git push origin "$VERSION"
 
       - name: Create release with executables
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          
-          gh release create $VERSION dist/* \
+          gh release create "$VERSION" dist/* \
             --title "Release $VERSION" \
             --notes "Automated build release"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          

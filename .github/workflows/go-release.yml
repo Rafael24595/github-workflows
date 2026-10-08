@@ -54,10 +54,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Check tag exists
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           git fetch --tags
           
-          VERSION="${{ steps.version.outputs.version }}"
           if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
             echo "🚫 Tag already exists → stopping"
             exit 1
@@ -73,31 +74,32 @@ jobs:
         run: go test ./...
 
       - name: Push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git tag $VERSION
-          git push origin $VERSION
+          git tag "$VERSION"
+          git push origin "$VERSION"
 
       - name: Create artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARTIFACT: ${{ inputs.artifact-name }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          ARTIFACT="${{ inputs.artifact-name }}"
-          
           git archive --format=tar.gz \
             --output=${ARTIFACT}-${VERSION}.tar.gz \
             $VERSION
 
       - name: Create release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARTIFACT: ${{ inputs.artifact-name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          gh release create $VERSION \
-            ${{ inputs.artifact-name }}-${VERSION}.tar.gz \
+          gh release create "$VERSION" \
+            ${ARTIFACT}-${VERSION}.tar.gz \
             --title "Release $VERSION" \
             --notes "Automated release"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
