@@ -1,0 +1,101 @@
+# This workflow will build and release Zig executables for multiple platforms.
+
+name: Release Executables
+
+on:
+  workflow_call:
+    inputs:
+
+      zig-version:
+        type: string
+        default: "0.15.1"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Extract artifact name
+        id: artifact
+        run: |
+          NAME=$(grep -Po '\.name\s*=\s*\.\K[a-zA-Z0-9_-]+' build.zig.zon)
+
+          if [[ -z "$NAME" ]]; then
+            echo "❌ Field 'name' not found in build.zig.zon"
+            exit 1
+          fi
+
+          echo "✅ Artifact name: $NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version
+        id: version
+        run: |
+          VERSION=$(grep -Po '\.version\s*=\s*"\K[^"]+' build.zig.zon)
+          if [[ -z "$VERSION" ]]; then
+            echo "❌ Field 'version' not found in build.zig.zon"
+            exit 1
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9\.-]+)?$ ]]; then
+            echo "❌ Invalid version: $VERSION"
+            echo "✅ Expected format: 1.2.3 or 1.2.3-beta.1"
+            exit 1
+          fi
+
+          echo "✅ Valid version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ inputs.zig-version }}
+
+      - name: Compile multi-platform binaries
+        env:
+          NAME: ${{ steps.artifact.outputs.name }}
+        run: |
+          mkdir -p dist
+
+          # Linux
+          zig build \
+            -Dtarget=x86_64-linux-gnu \
+            -Doptimize=ReleaseFast
+
+          cp "zig-out/bin/${NAME}" \
+            "dist/${NAME}-linux-x86_64"
+
+          # Windows
+          zig build \
+            -Dtarget=x86_64-windows-gnu \
+            -Doptimize=ReleaseFast
+
+          cp "zig-out/bin/${NAME}.exe" \
+            "dist/${NAME}-windows-x86_64.exe"
+
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create release with executables
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create $VERSION dist/* \
+            --title "Release $VERSION" \
+            --notes "Automated build release"

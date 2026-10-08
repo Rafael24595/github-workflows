@@ -1,0 +1,33 @@
+# This workflow will build and test a Zig project
+
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+    
+      zig-version:
+        type: string
+        default: "0.15.1"
+
+jobs:
+
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ inputs.zig-version }}
+
+      - name: Build
+        run: zig build
+
+      - name: Test
+        run: zig build test
+
