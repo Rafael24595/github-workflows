@@ -48,7 +48,7 @@ jobs:
           fi
 
           if [[ "$IS_DEV" == "false" && "${GITHUB_REF_NAME}" != "main" ]]; then
-            echo "🚫 Manual dispatch is only allowed from the 'main' branch."
+            echo "🚫 Stable releases can only be created from the 'main' branch."
             exit 1
           fi
 
