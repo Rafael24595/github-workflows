@@ -50,11 +50,25 @@ jobs:
 
           echo "✅ Valid version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check tag exists
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git fetch --tags
+          
+          if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "🚫 Tag already exists → stopping"
+            exit 1
+          fi
       
       - name: Set up Zig
         uses: mlugg/setup-zig@v2
         with:
           version: ${{ inputs.zig-version }}
+
+      - name: Build & test
+        run: zig build test
 
       - name: Compile multi-platform binaries
         env:
