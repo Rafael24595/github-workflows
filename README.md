@@ -136,6 +136,21 @@ jobs:
     uses: Rafael24595/github-workflows/.github/workflows/sh-ci.yml@main
 ```
 
+#### Inputs
+
+This workflow does not take any input parameters.
+
+#### Features
+
+* Zero third-party dependencies (uses tools pre-installed on the runner)
+* Automatic discovery of `.sh` scripts and executable shell files without extensions
+* Syntax validation using `bash -n`
+* Static code analysis using `shellcheck` with sourced file tracking (`-x`)
+
+#### Jobs Included
+
+* Lint (ShellCheck & Syntax)
+
 ---
 
 ### Zig CI
@@ -263,20 +278,7 @@ Source code (zip)
 Source code (tar.gz)
 ```
 
-#### Inputs
-
-This workflow does not take any input parameters.
-
-#### Features
-
-* Zero third-party dependencies (uses tools pre-installed on the runner)
-* Automatic discovery of `.sh` scripts and executable shell files without extensions
-* Syntax validation using `bash -n`
-* Static code analysis using `shellcheck` with sourced file tracking (`-x`)
-
-#### Jobs Included
-
-* Lint (ShellCheck & Syntax)
+---
 
 ## Versioning
 
