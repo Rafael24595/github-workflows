@@ -191,12 +191,12 @@ zig build test
 
 ---
 
-### Zig Release
+### Zig Executable Release
 
 Path:
 
 ```text
-.github/workflows/zig-release.yml
+.github/workflows/zig-executable.yml
 ```
 
 Usage:
@@ -204,7 +204,7 @@ Usage:
 ```yaml
 jobs:
   release:
-    uses: Rafael24595/github-workflows/.github/workflows/zig-release.yml@main
+    uses: Rafael24595/github-workflows/.github/workflows/zig-executable.yml@main
     with:
       zig-version: "0.15.1"
 ```
