@@ -51,7 +51,7 @@ jobs:
           echo "✅ Valid version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       
-      - name: Install Zig
+      - name: Set up Zig
         uses: mlugg/setup-zig@v2
         with:
           version: ${{ inputs.zig-version }}
