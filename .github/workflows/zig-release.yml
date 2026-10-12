@@ -1,0 +1,103 @@
+# This workflow will build and create a release for a Zig project.
+
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+
+      zig-version:
+        type: string
+        default: "0.15.1"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Extract artifact name
+        id: artifact
+        run: |
+          NAME=$(grep -Po '\.name\s*=\s*\.\K[a-zA-Z0-9_-]+' build.zig.zon)
+
+          if [[ -z "$NAME" ]]; then
+            echo "❌ Field 'name' not found in build.zig.zon"
+            exit 1
+          fi
+
+          echo "✅ Artifact name: $NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version
+        id: version
+        run: |
+          VERSION=$(grep -Po '\.version\s*=\s*"\K[^"]+' build.zig.zon)
+          if [[ -z "$VERSION" ]]; then
+            echo "❌ Field 'version' not found in build.zig.zon"
+            exit 1
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9\.-]+)?$ ]]; then
+            echo "❌ Invalid version: $VERSION"
+            echo "✅ Expected format: 1.2.3 or 1.2.3-beta.1"
+            exit 1
+          fi
+
+          echo "✅ Valid version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Check tag exists
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git fetch --tags
+          
+          if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "🚫 Tag already exists → stopping"
+            exit 1
+          fi
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ inputs.zig-version }}
+
+      - name: Build & test
+        run: |
+          zig build
+          zig build test
+
+      - name: Push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARTIFACT: ${{ steps.artifact.outputs.name }}
+        run: |
+          git archive --format=tar.gz \
+            --output=${ARTIFACT}-${VERSION}.tar.gz \
+            $VERSION
+
+      - name: Create release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARTIFACT: ${{ steps.artifact.outputs.name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$VERSION" \
+            ${ARTIFACT}-${VERSION}.tar.gz \
+            --title "Release $VERSION" \
+            --notes "Automated release"

@@ -316,6 +316,96 @@ zig build test
 
 ---
 
+### Zig Release
+
+**Path:**
+
+```text
+.github/workflows/zig-release.yml
+```
+
+**Usage:**
+
+```yaml
+jobs:
+  release:
+    uses: Rafael24595/github-workflows/.github/workflows/zig-release.yml@main
+    with:
+      zig-version: "0.15.1"
+```
+
+#### Inputs
+
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| zig-version | string | `0.15.1` | Zig version used by the workflow |
+
+#### Features
+
+- Artifact name extraction from `build.zig.zon`
+- Semantic version validation
+- Duplicate Git tag detection
+- Zig toolchain setup using `mlugg/setup-zig`
+- Project build and test execution
+- Git tag creation and push
+- Source archive generation using `git archive`
+- GitHub Release creation
+
+#### Version File
+
+The workflow expects the project name and version to be defined in `build.zig.zon`:
+
+```zig
+.name = .my_program,
+.version = "1.2.3",
+```
+
+Supported version formats:
+
+- `1.2.3`
+- `1.2.3-beta.1`
+- `1.2.3-dev.0`
+
+Versions must follow the `MAJOR.MINOR.PATCH` format, optionally followed by a hyphen and a suffix containing lowercase letters, digits, dots, or hyphens.
+
+The version is used as the Git tag and GitHub Release version. Unlike the Go Release workflow, this workflow does not automatically convert development versions into timestamped versions.
+
+#### Release Process
+
+The workflow performs the following steps:
+
+1. Checks out the repository.
+2. Extracts the artifact name from `build.zig.zon`.
+3. Validates the project version.
+4. Checks whether a Git tag for the version already exists and stops if it does.
+5. Sets up the requested Zig version.
+6. Builds and tests the project using `zig build` and `zig build test`.
+7. Creates and pushes the version tag.
+8. Generates a source archive using `git archive`.
+9. Creates a GitHub Release and uploads the archive.
+
+#### Release Output
+
+Each release generates:
+
+- A Git tag matching the project version
+- A GitHub Release titled `Release <version>`
+- A source archive named:
+
+```text
+<artifact-name>-<version>.tar.gz
+```
+
+Example:
+
+```text
+my_program-1.2.3.tar.gz
+```
+
+The GitHub Release uses the release notes `Automated release`.
+
+---
+
 ### Zig Executable Release
 
 **Path:**
@@ -413,7 +503,7 @@ Workflows can be referenced directly from the `main` branch:
 uses: Rafael24595/github-workflows/.github/workflows/go-ci.yml@main
 ```
 
-Replace the workflow filename with the desired workflow. For example,`zig-executable.yml` for cross-platform executable releases.
+Replace the workflow filename with the desired workflow. For example, use `zig-release.yml` for Zig source releases or `zig-executable.yml` for cross-platform executable releases.
 
 ## Purpose
 
