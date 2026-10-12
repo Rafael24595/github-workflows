@@ -6,13 +6,13 @@ Reusable GitHub Actions workflows shared across my personal projects.
 
 ### Go CI
 
-Path:
+**Path:**
 
 ```text
 .github/workflows/go-ci.yml
 ```
 
-Usage:
+**Usage:**
 
 ```yaml
 jobs:
@@ -24,28 +24,28 @@ jobs:
 
 #### Inputs
 
-| Name       | Type   | Default | Description                                |
-| :--------- | :----- | :------ | :----------------------------------------- |
-| go-version | string | 1.25.5  | Go version used by the workflow            |
-| test-tags  | string | ""      | Optional Go build tags passed to `go test` |
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| go-version | string | `1.25.5` | Go version used by the workflow |
+| test-tags | string | `""` | Optional Go build tags passed to `go test` |
 
 #### Jobs Included
 
-* Build
-* Test
-* Lint (golangci-lint)
+- Build
+- Test
+- Lint (golangci-lint)
 
 ---
 
 ### Go Release
 
-Path:
+**Path:**
 
 ```text
 .github/workflows/go-release.yml
 ```
 
-Usage:
+**Usage:**
 
 ```yaml
 jobs:
@@ -58,21 +58,21 @@ jobs:
 
 #### Inputs
 
-| Name          | Type   | Default | Description                            |
-| :------------ | :----- | :------ | :------------------------------------- |
-| go-version    | string | 1.25.5  | Go version used by the workflow        |
-| artifact-name | string | release | Name of the generated release artifact |
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| go-version | string | `1.25.5` | Go version used by the workflow |
+| artifact-name | string | `release` | Name of the generated release artifact |
 
 #### Features
 
-* Version validation from `go.package.yml`
-* Semantic version enforcement
-* Automatic timestamping of development versions
-* Branch validation (`main` and `dev`)
-* Git tag creation
-* GitHub Release creation
-* Source archive generation using `git archive`
-* Go module testing
+- Version validation from `go.package.yml`
+- Semantic version enforcement
+- Automatic timestamping of development versions
+- Branch validation (`main` and `dev`)
+- Git tag creation
+- GitHub Release creation
+- Source archive generation using `git archive`
+- Go module testing
 
 #### Version File
 
@@ -85,18 +85,18 @@ project:
 
 Supported formats:
 
-* `v1.2.3`
-* `v1.2.3-beta.1`
-* `v1.2.3-dev.0`
+- `v1.2.3`
+- `v1.2.3-beta.1`
+- `v1.2.3-dev.0`
 
 Development versions ending in `-dev.0` are automatically converted into timestamped versions during the release process.
 
 #### Branch Rules
 
 | Branch | Allowed Release Type |
-| :----- | :------------------- |
-| main   | Stable releases      |
-| dev    | Development releases |
+| :--- | :--- |
+| `main` | Stable releases |
+| `dev` | Development releases |
 
 Releases triggered from invalid branches will fail.
 
@@ -104,9 +104,9 @@ Releases triggered from invalid branches will fail.
 
 Each release generates:
 
-* A Git tag
-* A GitHub Release
-* A source archive named:
+- A Git tag
+- A GitHub Release
+- A source archive named:
 
 ```text
 <artifact-name>-<version>.tar.gz
@@ -122,13 +122,13 @@ my-library-v1.2.3.tar.gz
 
 ### Shell CI
 
-Path:
+**Path:**
 
 ```text
 .github/workflows/sh-ci.yml
 ```
 
-Usage:
+**Usage:**
 
 ```yaml
 jobs:
@@ -142,26 +142,26 @@ This workflow does not take any input parameters.
 
 #### Features
 
-* Zero third-party dependencies (uses tools pre-installed on the runner)
-* Automatic discovery of `.sh` scripts and executable shell files without extensions
-* Syntax validation using `bash -n`
-* Static code analysis using `shellcheck` with sourced file tracking (`-x`)
+- Zero third-party dependencies (uses tools pre-installed on the runner)
+- Automatic discovery of `.sh` scripts and executable shell files without extensions
+- Syntax validation using `bash -n`
+- Static code analysis using `shellcheck` with sourced file tracking (`-x`)
 
 #### Jobs Included
 
-* Lint (ShellCheck & Syntax)
+- Lint (ShellCheck & Syntax)
 
 ---
 
 ### Zig CI
 
-Path:
+**Path:**
 
 ```text
 .github/workflows/zig-ci.yml
 ```
 
-Usage:
+**Usage:**
 
 ```yaml
 jobs:
@@ -173,14 +173,14 @@ jobs:
 
 #### Inputs
 
-| Name        | Type   | Default | Description                      |
-| :---------- | :----- | :------ | :------------------------------- |
-| zig-version | string | 0.15.1  | Zig version used by the workflow |
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| zig-version | string | `0.15.1` | Zig version used by the workflow |
 
 #### Jobs Included
 
-* Build
-* Test
+- Build
+- Test
 
 The workflow runs:
 
@@ -193,13 +193,13 @@ zig build test
 
 ### Zig Executable Release
 
-Path:
+**Path:**
 
 ```text
 .github/workflows/zig-executable.yml
 ```
 
-Usage:
+**Usage:**
 
 ```yaml
 jobs:
@@ -211,21 +211,21 @@ jobs:
 
 #### Inputs
 
-| Name        | Type   | Default | Description                      |
-| :---------- | :----- | :------ | :------------------------------- |
-| zig-version | string | 0.15.1  | Zig version used by the workflow |
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| zig-version | string | `0.15.1` | Zig version used by the workflow |
 
 #### Features
 
-* Artifact name extraction from `build.zig.zon`
-* Semantic version validation
-* Git tag creation
-* Multi-platform executable builds
-* Linux x86_64 executable
-* Windows x86_64 executable
-* SHA-256 checksum generation
-* GitHub Release creation
-* Automatic GitHub source archives
+- Artifact name extraction from `build.zig.zon`
+- Semantic version validation
+- Git tag creation
+- Multi-platform executable builds
+- Linux x86_64 executable
+- Windows x86_64 executable
+- SHA-256 checksum generation
+- GitHub Release creation
+- Automatic GitHub source archives
 
 #### Version File
 
@@ -237,9 +237,9 @@ The workflow expects the project version to be defined in `build.zig.zon`:
 
 Supported formats:
 
-* `1.2.3`
-* `1.2.3-beta.1`
-* `1.2.3-dev.0`
+- `1.2.3`
+- `1.2.3-beta.1`
+- `1.2.3-dev.0`
 
 The version is used as the Git tag and GitHub Release version.
 
@@ -257,11 +257,11 @@ The extracted name is used as the base name for the generated executables.
 
 Each release generates:
 
-* A Git tag
-* A GitHub Release
-* A Linux x86_64 executable
-* A Windows x86_64 executable
-* A SHA-256 checksums file
+- A Git tag
+- A GitHub Release
+- A Linux x86_64 executable
+- A Windows x86_64 executable
+- A SHA-256 checksums file
 
 Example:
 
@@ -287,6 +287,8 @@ Workflows can be referenced directly from the `main` branch:
 ```yaml
 uses: Rafael24595/github-workflows/.github/workflows/go-ci.yml@main
 ```
+
+Replace the workflow filename with the desired workflow. For example,`zig-executable.yml` for cross-platform executable releases.
 
 ## Purpose
 
