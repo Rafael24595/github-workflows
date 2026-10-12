@@ -120,6 +120,131 @@ my-library-v1.2.3.tar.gz
 
 ---
 
+### Go Executable Release
+
+**Path:**
+
+```text
+.github/workflows/go-executable.yml
+```
+
+**Usage:**
+
+```yaml
+jobs:
+  release:
+    uses: Rafael24595/github-workflows/.github/workflows/go-executable.yml@main
+    with:
+      go-version: "1.25.5"
+      artifact-name: "my-app"
+      build-paths: "./cmd/api,./cmd/worker"
+```
+
+#### Inputs
+
+| Name | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| go-version | string | `1.25.5` | Go version used by the workflow |
+| artifact-name | string | `app` | Base name used for generated executables |
+| build-paths | string | `.` | Comma-separated list of Go package paths to compile |
+
+The `build-paths` input supports multiple Go packages. Each path produces a separate set of executables, named after the last component of the package path.
+
+For example, `./cmd/api,./cmd/worker` generates executables named `api` and `worker`.
+
+#### Features
+
+- Version validation from `go.package.yml`
+- Semantic version enforcement
+- Automatic timestamping of development versions
+- Branch validation (`main` and `dev`)
+- Duplicate Git tag detection
+- Go toolchain setup with dependency caching
+- Go module testing using `go test ./...`
+- Multi-platform executable builds
+- Linux AMD64 executable
+- Windows AMD64 executable
+- macOS ARM64 executable (Apple Silicon)
+- macOS AMD64 executable (Intel)
+- Build version injection using linker flags
+- SHA-256 checksum generation
+- Git tag creation and push
+- GitHub Release creation with all generated executables
+
+#### Version File
+
+The workflow expects a `go.package.yml` file containing the project version:
+
+```yaml
+project:
+  version: v1.2.3
+```
+
+Supported formats:
+
+- `v1.2.3`
+- `v1.2.3-beta.1`
+- `v1.2.3-dev.0`
+
+Development versions ending in `-dev.0` are automatically converted into timestamped versions during the release process.
+
+For example:
+
+```text
+v1.2.3-dev.0 -> v1.2.3-dev.20261012123045
+```
+
+Stable releases are allowed only from the `main` branch, while development releases are allowed only from the `dev` branch. Releases from other branches, or releases whose version type does not match the branch, will fail.
+
+#### Build Configuration
+
+The workflow compiles each package specified in `build-paths` for four target platforms:
+
+| Operating System | Architecture | Output suffix |
+| :--- | :--- | :--- |
+| Linux | AMD64 (x86_64) | `linux-amd64` |
+| Windows | AMD64 (x86_64) | `windows-amd64.exe` |
+| macOS | ARM64 (Apple Silicon) | `darwin-arm64` |
+| macOS | AMD64 (Intel) | `darwin-amd64` |
+
+All binaries are built with `CGO_ENABLED=0`, producing executables without CGO dependencies.
+
+The workflow injects the release version into the `main.version` variable using Go linker flags and strips debugging information to reduce binary size.
+
+For version injection to work, the application should define the variable:
+
+```go
+package main
+
+var version = "dev"
+```
+
+#### Release Output
+
+Each release generates four executables per package specified in `build-paths`, along with a SHA-256 checksums file.
+
+For example, with `artifact-name: "my-app"` and `build-paths: "./cmd/api"`:
+
+```text
+my-app-api-v1.2.3-linux-amd64
+my-app-api-v1.2.3-windows-amd64.exe
+my-app-api-v1.2.3-darwin-arm64
+my-app-api-v1.2.3-darwin-amd64
+checksums.txt
+```
+
+The checksums file contains SHA-256 hashes for all generated executables.
+
+Each release also creates:
+
+- A Git tag matching the release version
+- A GitHub Release titled `Release <version>`
+- All generated executables and `checksums.txt` attached to the release
+
+The GitHub Release uses the release notes `Automated build release`.
+
+---
+
 ### Shell CI
 
 **Path:**
